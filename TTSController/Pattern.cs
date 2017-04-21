@@ -30,12 +30,9 @@ namespace TTSController
         {
             foreach (var ring in Sequence.Rings)
             {
-                foreach (var barrier in ring.Barriers)
+                foreach (var phase in ring.Phases)
                 {
-                    foreach (var phase in barrier.Phases)
-                    {
-                        if (phase.ID == id) return phase;
-                    }
+                    if (phase.ID == id) return phase;
                 }
             }
 

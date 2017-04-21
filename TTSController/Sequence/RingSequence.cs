@@ -20,32 +20,21 @@ namespace TTSController.Sequence
 
             for (var i = 0; i < Rings.Count; i++)
             {
-                for (var j = 0; j < Rings[i].Barriers.Count; j++)
+                foreach (var phase in Rings[i].Phases)
                 {
-                    foreach (var phase in Rings[i].Barriers[j].Phases)
+                    for (var j = 0; j < Rings.Count; j++)
                     {
-                        phase.ConflictPhases.AddRange(GetConflictPhases(phase.ID, i, j));
+                        foreach (var conflictPhase in Rings[j].Phases)
+                        {
+                            // Add conflict phases for any phases on the same ring
+                            if (phase.ID != conflictPhase.ID && i == j) phase.ConflictPhases.Add(conflictPhase.ID);
+
+                            // Also need to add conflict phases for any phases on a different ring, in a different barrier
+
+                        }
                     }
                 }
             }
-        }
-
-        private List<int> GetConflictPhases(int phaseID, int ringIndex, int barrierIndex)
-        {
-            List<int> conflictPhases = new List<int>();
-
-            for (var i = 0; i < Rings.Count; i++)
-            {
-                for (var j = 0; j < Rings[i].Barriers.Count; j++)
-                {
-                    foreach (var phase in Rings[i].Barriers[j].Phases)
-                    {
-                        if (phase.ID != phaseID && (i == ringIndex || j != barrierIndex)) conflictPhases.Add(phase.ID);
-                    }
-                }
-            }
-
-            return conflictPhases;
         }
 
         internal void Advance(int nSeconds, int cycleSecond)
@@ -66,51 +55,14 @@ namespace TTSController.Sequence
 
         public void PlaceCall(int phaseID)
         {
-            for (var i = 0; i < Rings.Count; i++) {
-                var ring = Rings[i];
+            Phase callPhase = GetPhase(phaseID);
+            callPhase.PlaceCall();
 
-                for (var j = 0; j < ring.Barriers.Count; j++)
-                {
-                    var barrier = ring.Barriers[j];
-
-                    for (var k = 0; k < barrier.Phases.Count; k++)
-                    {
-                        var phase = barrier.Phases[k];
-
-                        if (phase.ID == phaseID)
-                        {
-                            phase.PlaceCall();
-
-                            // Place opposing calls on any phases in the same ring, or in a different barrier
-                            PlaceOpposingCalls(phaseID, j, i);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            throw new ArgumentOutOfRangeException("Phase " + phaseID + " not found in sequence");
-        }
-
-        private void PlaceOpposingCalls(int calledPhaseID, int calledBarrierIndex, int calledRingIndex)
-        {
-            for (var i = 0; i < Rings.Count; i++)
+            foreach (var ring in Rings)
             {
-                var ring = Rings[i];
-
-                for (var j = 0; j < ring.Barriers.Count; j++)
+                foreach (var phase in ring.Phases)
                 {
-                    var barrier = ring.Barriers[j];
-
-                    for (var k = 0; k < barrier.Phases.Count; k++)
-                    {
-                        Phase phase = barrier.Phases[k];
-
-                        if (phase.ID != calledPhaseID && (i == calledRingIndex || j != calledBarrierIndex))
-                        {
-                            phase.PlaceOpposingCall();
-                        }
-                    }
+                    if (phase.ConflictPhases.Contains(callPhase.ID)) phase.PlaceOpposingCall();
                 }
             }
         }
@@ -119,9 +71,10 @@ namespace TTSController.Sequence
         {
             foreach (var ring in Rings)
             {
-                foreach (var barrier in ring.Barriers)
+                Phase phase = ring.Phases.FirstOrDefault(p => p.ID == phaseID);
+                if (phase != null)
                 {
-                    if (barrier.Phases.Exists(p => p.ID == phaseID)) return barrier.Phases[phaseID];
+                    return phase;
                 }
             }
 
@@ -134,10 +87,7 @@ namespace TTSController.Sequence
 
             foreach (var ring in Rings)
             {
-                foreach (var barrier in ring.Barriers)
-                {
-                    phases.AddRange(barrier.Phases);
-                }
+                phases.AddRange(ring.Phases);
             }
 
             return phases;

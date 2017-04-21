@@ -70,12 +70,9 @@ namespace TTSController
             {
                 foreach (var ring in pattern.Value.Sequence.Rings)
                 {
-                    foreach (var barrier in ring.Barriers)
+                    foreach (var phase in ring.Phases)
                     {
-                        foreach (var phase in barrier.Phases)
-                        {
-                            states.Add(phase.ID, phase.State);
-                        }
+                        states.Add(phase.ID, phase.State);
                     }
                 }
             }

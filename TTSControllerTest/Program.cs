@@ -60,28 +60,28 @@ namespace TTSControllerTest
         {
             var controller = new TimingPlan();
             var pattern = new Pattern(1);
-            var rings = new List<Ring>();
-            var barriers = new List<Barrier>();
-            var phases = new List<Phase>();
 
-            phases.Add(new Phase(1, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15, IsCoordinated = true });
-            phases.Add(new Phase(2, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(3, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(4, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(5, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(6, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(7, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases.Add(new Phase(8, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            var phases1 = new List<Phase>();
+            phases1.Add(new Phase(1, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15, IsCoordinated = true });
+            phases1.Add(new Phase(2, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            phases1.Add(new Phase(3, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            phases1.Add(new Phase(4, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
 
-            barriers.Add(new Barrier(phases.GetRange(0, 2)));
-            barriers.Add(new Barrier(phases.GetRange(2, 2)));
-            barriers.Add(new Barrier(phases.GetRange(4, 2)));
-            barriers.Add(new Barrier(phases.GetRange(6, 2)));
+            Ring ring1 = new Ring(phases1);
+            ring1.AddBarrier(2);
 
-            rings.Add(new Ring(barriers.GetRange(0, 2)));
-            rings.Add(new Ring(barriers.GetRange(2, 2)));
+            var phases2 = new List<Phase>();
+            phases2.Add(new Phase(5, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            phases2.Add(new Phase(6, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            phases2.Add(new Phase(7, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            phases2.Add(new Phase(8, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
 
+            Ring ring2 = new Ring(phases2);
+            ring2.AddBarrier(2);
+
+            var rings = new List<Ring>() { ring1, ring2 };
             pattern.Sequence = new RingSequence(rings);
+
             controller.AddPattern(pattern);
             return controller;
         }

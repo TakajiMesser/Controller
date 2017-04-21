@@ -26,7 +26,7 @@ namespace TTSController.Phasing
         private bool _hasOpposingCall = false;
         private bool _isCoordinated = false;
         private bool _floatingForceOff = false;
-        private List<int> _conflictPhases = new List<int>();
+        private HashSet<int> _conflictPhases = new HashSet<int>();
 
         public int ID { get { return _id; } }
         public PhaseStates State { get { return _state; } }
@@ -39,6 +39,7 @@ namespace TTSController.Phasing
         public bool FloatingForceOff { get { return _floatingForceOff; } set { _floatingForceOff = value; } }
         public bool HasCall { get { return _hasCall; } }
         public bool HasOpposingCall { get { return _hasOpposingCall; } }
+
         internal bool IsZero
         {
             get
@@ -51,9 +52,8 @@ namespace TTSController.Phasing
                         && (_redClearanceTimer != null) && (_redClearanceTimer.IsComplete);
             }
         }
-
         internal int ForceOffPoint { get; set; }
-        internal List<int> ConflictPhases { get { return _conflictPhases; } }
+        internal HashSet<int> ConflictPhases { get { return _conflictPhases; } }
 
         public Phase(int id)
         {
