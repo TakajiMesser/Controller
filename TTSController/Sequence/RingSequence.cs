@@ -18,23 +18,51 @@ namespace TTSController.Sequence
         {
             _rings.AddRange(rings);
 
-            for (var i = 0; i < Rings.Count; i++)
+            foreach (var ring in Rings)
             {
-                foreach (var phase in Rings[i].Phases)
+                foreach (var phase in ring.Phases)
                 {
-                    for (var j = 0; j < Rings.Count; j++)
-                    {
-                        foreach (var conflictPhase in Rings[j].Phases)
-                        {
-                            // Add conflict phases for any phases on the same ring
-                            if (phase.ID != conflictPhase.ID && i == j) phase.ConflictPhases.Add(conflictPhase.ID);
+                    // Any phases on the same ring are conflicts
+                    phase.ConflictPhases.UnionWith(Rings
+                        .Where(
+                            r => Rings.IndexOf(r) == Rings.IndexOf(ring)
+                            )
+                        .SelectMany(
+                            r => r.Phases
+                            )
+                        .Select(p => p.ID));
 
-                            // Also need to add conflict phases for any phases on a different ring, in a different barrier
-
-                        }
-                    }
+                    // Any phases in a different barrier are conflicts
+                    phase.ConflictPhases.UnionWith(Rings
+                        .Where(
+                            r => Rings.IndexOf(r) != Rings.IndexOf(ring)
+                            )
+                        .SelectMany(
+                            r => r.Phases
+                            )
+                        .Where(
+                            p => GetBarrierIndexForPhase(p.ID) != GetBarrierIndexForPhase(phase.ID)
+                            )
+                        .Select(
+                            p => p.ID)
+                            );
                 }
             }
+        }
+
+        private int GetBarrierIndexForPhase(int phaseID)
+        {
+            foreach (var ring in Rings)
+            {
+                Phase phase = ring.Phases.FirstOrDefault(p => p.ID == phaseID);
+                if (phase != null)
+                {
+                    int phaseIndex = ring.Phases.IndexOf(phase);
+                    return ring.BarrierIndices.FirstOrDefault(b => b > phaseIndex);
+                }
+            }
+
+            throw new ArgumentOutOfRangeException("Phase ID " + phaseID + " not found in sequence");
         }
 
         internal void Advance(int nSeconds, int cycleSecond)

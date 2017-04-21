@@ -46,6 +46,10 @@ namespace TTSControllerTest
         private static void IterateAndAdvanceController(TimingPlan timingPlan, int nAdvances)
         {
             Pattern pattern = timingPlan.Patterns[timingPlan.CurrentPattern];
+
+            WriteRingSequence(pattern.Sequence);
+            WritePhases(pattern.Sequence);
+
             WriteHeaders(pattern.Sequence);
 
             for (var i = 1; i <= nAdvances; i++)
@@ -68,7 +72,7 @@ namespace TTSControllerTest
             phases1.Add(new Phase(4, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
 
             Ring ring1 = new Ring(phases1);
-            ring1.AddBarrier(2);
+            ring1.BarrierIndices.Add(2);
 
             var phases2 = new List<Phase>();
             phases2.Add(new Phase(5, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
@@ -77,7 +81,7 @@ namespace TTSControllerTest
             phases2.Add(new Phase(8, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
 
             Ring ring2 = new Ring(phases2);
-            ring2.AddBarrier(2);
+            ring2.BarrierIndices.Add(2);
 
             var rings = new List<Ring>() { ring1, ring2 };
             pattern.Sequence = new RingSequence(rings);
@@ -100,6 +104,45 @@ namespace TTSControllerTest
                 sequence.PlaceCall(3);
                 sequence.PlaceCall(4);
             }
+        }
+
+        private static void WriteRingSequence(RingSequence sequence)
+        {
+            Console.WriteLine("Ring Sequence:");
+            Console.WriteLine();
+
+            foreach (var ring in sequence.Rings)
+            {
+                List<string> items = new List<string>();
+
+                for (var i = 0; i < ring.Phases.Count; i++)
+                {
+                    if (ring.BarrierIndices.Contains(i))
+                    {
+                        items.Add("|");
+                    }
+
+                    Phase phase = ring.Phases[i];
+                    items.Add(phase.ID.ToString());
+                }
+
+                Console.WriteLine(String.Join(" ", items));
+            }
+
+            Console.WriteLine();
+        }
+
+        private static void WritePhases(RingSequence sequence)
+        {
+            foreach (var ring in sequence.Rings)
+            {
+                foreach (var phase in ring.Phases)
+                {
+                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.MaxGreen + ", MinGreen: " + phase.MinGreen + ", Yellow: " + phase.Yellow + ", RedClearance: " + phase.RedClearance);
+                }
+            }
+
+            Console.WriteLine();
         }
 
         private static void WriteHeaders(RingSequence sequence)
