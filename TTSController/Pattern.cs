@@ -24,7 +24,6 @@ namespace TTSController
 
             ID = id;
             _offsetReferencePoint = 0;
-            Sequence = new RingSequence();
         }
 
         public Phase GetPhase(int id)

@@ -15,7 +15,10 @@ namespace TTSController.Sequence
         public int Duration { get { return Barriers.Select(b => b.Duration).Sum(); } }
         public Phase CoordinatedPhase { get { return Barriers.SelectMany(b => b.Phases).Where(p => p.IsCoordinated).FirstOrDefault(); } }
 
-        public Ring() { }
+        public Ring(IEnumerable<Barrier> barriers)
+        {
+            _barriers.AddRange(barriers);
+        }
 
         internal void Advance(int nSeconds, int ringSecond)
         {

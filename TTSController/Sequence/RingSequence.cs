@@ -14,7 +14,39 @@ namespace TTSController.Sequence
         public List<Ring> Rings { get { return _rings; } }
         public int Duration { get { return Rings.Select(r => r.Duration).Max(); } }
 
-        public RingSequence() { }
+        public RingSequence(IEnumerable<Ring> rings)
+        {
+            _rings.AddRange(rings);
+
+            for (var i = 0; i < Rings.Count; i++)
+            {
+                for (var j = 0; j < Rings[i].Barriers.Count; j++)
+                {
+                    foreach (var phase in Rings[i].Barriers[j].Phases)
+                    {
+                        phase.ConflictPhases.AddRange(GetConflictPhases(phase.ID, i, j));
+                    }
+                }
+            }
+        }
+
+        private List<int> GetConflictPhases(int phaseID, int ringIndex, int barrierIndex)
+        {
+            List<int> conflictPhases = new List<int>();
+
+            for (var i = 0; i < Rings.Count; i++)
+            {
+                for (var j = 0; j < Rings[i].Barriers.Count; j++)
+                {
+                    foreach (var phase in Rings[i].Barriers[j].Phases)
+                    {
+                        if (phase.ID != phaseID && (i == ringIndex || j != barrierIndex)) conflictPhases.Add(phase.ID);
+                    }
+                }
+            }
+
+            return conflictPhases;
+        }
 
         internal void Advance(int nSeconds, int cycleSecond)
         {

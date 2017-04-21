@@ -15,44 +15,57 @@ namespace TTSController.Phasing
 
     public class Phase
     {
+        private int _id;
         private PhaseStates _state = PhaseStates.Red;
-        private int _forceOffTimer = 0;
-        private int _maxGreenTimer = 0;
-        private int _minGreenTimer = 0;
-        private int _yellowTimer = 0;
-        private int _redClearanceTimer = 0;
-
+        private CountDown _forceOffTimer = new CountDown();
+        private CountDown _maxGreenTimer = new CountDown();
+        private CountDown _minGreenTimer = new CountDown();
+        private CountDown _yellowTimer = new CountDown();
+        private CountDown _redClearanceTimer = new CountDown();
         private bool _hasCall = false;
         private bool _hasOpposingCall = false;
-
         private bool _isCoordinated = false;
-        private bool _floatingForceOff = true;
-        private int _forceOff = 0;
+        private bool _floatingForceOff = false;
+        private List<int> _conflictPhases = new List<int>();
 
-        public int ID { get; set; }
+        public int ID { get { return _id; } }
         public PhaseStates State { get { return _state; } }
         public int Split { get; set; }
-        public bool HasCall { get { return _hasCall; } }
-
         public int MinGreen { get; set; }
         public double MaxGreen { get; set; }
         public double Yellow { get; set; }
         public double RedClearance { get; set; }
         public bool IsCoordinated { get { return _isCoordinated; } set { _isCoordinated = value; } }
         public bool FloatingForceOff { get { return _floatingForceOff; } set { _floatingForceOff = value; } }
-        public int ForceOffPoint { get { return _forceOff; } set { _forceOff = value; } }
+        public bool HasCall { get { return _hasCall; } }
+        public bool HasOpposingCall { get { return _hasOpposingCall; } }
+        internal bool IsZero
+        {
+            get
+            {
+                return (_state == PhaseStates.Red)
+                        && (_forceOffTimer != null) && (_forceOffTimer.IsComplete)
+                        && (_maxGreenTimer != null) && (_maxGreenTimer.IsComplete)
+                        && (_minGreenTimer != null) && (_minGreenTimer.IsComplete)
+                        && (_yellowTimer != null) && (_yellowTimer.IsComplete)
+                        && (_redClearanceTimer != null) && (_redClearanceTimer.IsComplete);
+            }
+        }
+
+        internal int ForceOffPoint { get; set; }
+        internal List<int> ConflictPhases { get { return _conflictPhases; } }
 
         public Phase(int id)
         {
             if (id < 0) throw new ArgumentOutOfRangeException("Phase ID must be positive");
-            ID = id;
+            _id = id;
         }
         public Phase(int id, int split)
         {
             if (id < 0) throw new ArgumentOutOfRangeException("Phase ID must be positive");
             if (split < 0) throw new ArgumentOutOfRangeException("Split must be positive");
 
-            ID = id;
+            _id = id;
             Split = split;
         }
 
@@ -66,86 +79,80 @@ namespace TTSController.Phasing
             _hasOpposingCall = true;
         }
 
-        internal bool IsZero()
+        internal void Advance(int nSeconds)
         {
-            if (_state != PhaseStates.Red) return false;
-            if (_forceOffTimer > 0) return false;
-            if (_yellowTimer > 0) return false;
-            if (_redClearanceTimer > 0) return false;
+            switch (_state)
+            {
+                case PhaseStates.Green:
+                    _minGreenTimer.Decrement(nSeconds);
+                    _forceOffTimer.Decrement(nSeconds);
+                    _maxGreenTimer.Decrement(nSeconds);
 
-            return true;
+                    if (_minGreenTimer.IsComplete)
+                    {
+                        if (_isCoordinated)
+                        {
+                            if (_forceOffTimer.IsComplete && _hasOpposingCall) TransitionToYellow();
+                        }
+                        else
+                        {
+                            if (_forceOffTimer.IsComplete) TransitionToYellow();
+                            if (_maxGreenTimer.IsComplete) TransitionToYellow();
+                        }
+                    }
+                    break;
+                case PhaseStates.Yellow:
+                    _yellowTimer.Decrement(nSeconds);
+                    if (_yellowTimer.IsComplete) TransitionToRed();
+                    break;
+                case PhaseStates.Red:
+                    _redClearanceTimer.Decrement(nSeconds);
+                    if (_redClearanceTimer.IsComplete && _hasCall) TransitionToGreen();
+                    break;
+            }
         }
 
         private void TransitionToGreen()
         {
             _state = PhaseStates.Green;
             _hasCall = false;
+            int forceOff = (ForceOffPoint <= 0) ? Split - (int)Yellow - (int)RedClearance : Math.Min(Split - (int)Yellow - (int)RedClearance, ForceOffPoint);
+            if (_forceOffTimer.IsComplete) _forceOffTimer.Reset(forceOff);
+            if (_maxGreenTimer.IsComplete) _maxGreenTimer.Reset((int)MaxGreen);
+            if (_minGreenTimer.IsComplete) _minGreenTimer.Reset(MinGreen);
 
-            _forceOffTimer = Split - (int)Yellow - (int)RedClearance;
-            if (!_floatingForceOff && _forceOff < _forceOffTimer) _forceOffTimer = _forceOff;
-
-            _maxGreenTimer = (int)MaxGreen;
-            _minGreenTimer = MinGreen;
+            _redClearanceTimer = new CountDown();
         }
 
         private void TransitionToYellow()
         {
             _state = PhaseStates.Yellow;
             _hasOpposingCall = false;
+            if (_yellowTimer.IsComplete) _yellowTimer.Reset((int)Yellow);
 
-            _yellowTimer = (int)Yellow;
-            _forceOffTimer = 0;
-            _forceOff = 0;
-            _maxGreenTimer = 0;
+            _forceOffTimer = new CountDown();
+            _maxGreenTimer = new CountDown();
+            _minGreenTimer = new CountDown();
         }
 
         private void TransitionToRed()
         {
             _state = PhaseStates.Red;
+            if (_redClearanceTimer.IsComplete) _redClearanceTimer.Reset((int)RedClearance);
 
-            _redClearanceTimer = (int)RedClearance;
-        }
-
-        internal void Advance(int nSeconds)
-        {
-            switch (_state)
-            {
-                case PhaseStates.Green:
-                    if (_minGreenTimer > 0) _minGreenTimer--;
-                    if (_forceOffTimer > 0) _forceOffTimer--;
-                    if (_maxGreenTimer > 0) _maxGreenTimer--;
-
-                    if (_minGreenTimer == 0)
-                    {
-                        if (_isCoordinated)
-                        {
-                            if (_forceOffTimer == 0 && _hasOpposingCall) TransitionToYellow();
-                        }
-                        else
-                        {
-                            if (_forceOffTimer == 0) TransitionToYellow();
-                            if (_maxGreenTimer == 0) TransitionToYellow();
-                        }
-                    }
-                    break;
-                case PhaseStates.Yellow:
-                    if (_yellowTimer > 0) _yellowTimer--;
-                    if (_yellowTimer == 0) TransitionToRed();
-                    break;
-                case PhaseStates.Red:
-                    if (_redClearanceTimer > 0) _redClearanceTimer--;
-                    if (_redClearanceTimer == 0 && _hasCall) TransitionToGreen();
-                    break;
-            }
+            _yellowTimer = new CountDown();
         }
 
         internal void Zero()
         {
             _state = PhaseStates.Red;
-            _forceOffTimer = 0;
-            _maxGreenTimer = 0;
-            _yellowTimer = 0;
-            _redClearanceTimer = 0;
+            _forceOffTimer = new CountDown();
+            _maxGreenTimer = new CountDown();
+            _minGreenTimer = new CountDown();
+            _yellowTimer = new CountDown();
+            _redClearanceTimer = new CountDown();
+            _hasCall = false;
+            _hasOpposingCall = false;
         }
     }
 }
