@@ -34,19 +34,17 @@ namespace TTSController.Sequence
                 // Do not advance this phase if the coordinated phase is already running, and the coordinated phase conflicts with this one
                 if (coordinatedPhase != null && phase.ConflictPhases.Contains(coordinatedPhase.ID) && !coordinatedPhase.IsZero)
                 {
+                    // Unclear line...
                     coordinatedPhase.ForceOff = coordinatedPhase.MinGreen;
                     coordinatedPhase.Advance(nSeconds);
 
-                    // Is this phase completed?
-                    if (coordinatedPhase.IsZero)
-                    {
-                        // We still need to iterate the next phase forward as well
-                        _servicedPhases.Add(coordinatedPhase);
-                    }
-                    else
+                    // If this phase isn't completed yet, we are done advancing for this iteration
+                    if (!coordinatedPhase.IsZero)
                     {
                         return;
                     }
+
+                    _servicedPhases.Add(coordinatedPhase);
                 }
 
                 if (phase.HasCall || !phase.IsZero)
@@ -63,24 +61,12 @@ namespace TTSController.Sequence
                         phase.ForceOff = phase.Split - (int)phase.Yellow - (int)phase.RedClearance;
                     }
 
-                    // SAFETY CHECK -> Don't advance this phase if any conflicting phases are running
-                    /*foreach (var phaseID in phase._callByConflictPhase.Keys)
-                    {
-                        Phase conflictPhase = _phases.FirstOrDefault(p => p.ID == phaseID);
-                        if (conflictPhase != null && !conflictPhase.IsZero)
-                        {
-                        }
-                    }*/
+                    // ADD SAFETY CHECK -> Don't advance this phase if any conflicting phases are running
 
                     phase.Advance(nSeconds);
 
-                    // Is this phase completed?
-                    if (phase.IsZero)
-                    {
-                        // We still need to iterate the next phase forward as well
-                        _servicedPhases.Add(phase);
-                    }
-                    else
+                    // If this phase isn't completed yet, we are done advancing for this iteration
+                    if (!phase.IsZero)
                     {
                         // Iterate the coordinated phase forward as well, if it is already running
                         if (coordinatedPhase != null && phase.ID != coordinatedPhase.ID && !coordinatedPhase.IsZero)
@@ -89,6 +75,8 @@ namespace TTSController.Sequence
                         }
                         return;
                     }
+
+                    _servicedPhases.Add(coordinatedPhase);
                 }
             }
 
