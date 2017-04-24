@@ -43,7 +43,6 @@
     <Compile Include="Countdown.cs" />
     <Compile Include="Phasing\Phase.cs" />
     <Compile Include="Pattern.cs" />
-    <Compile Include="Sequence\Barrier.cs" />
     <Compile Include="Sequence\Ring.cs" />
     <Compile Include="Sequence\RingSequence.cs" />
     <Compile Include="TimingPlan.cs" />

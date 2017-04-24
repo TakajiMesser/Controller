@@ -23,17 +23,24 @@ namespace TTSController.Sequence
                 foreach (var phase in ring.Phases)
                 {
                     // Any phases on the same ring are conflicts
-                    phase.ConflictPhases.UnionWith(Rings
+                    var conflictPhases = new HashSet<int>();
+
+                    conflictPhases.UnionWith(Rings
                         .Where(
                             r => Rings.IndexOf(r) == Rings.IndexOf(ring)
                             )
                         .SelectMany(
                             r => r.Phases
                             )
-                        .Select(p => p.ID));
+                        .Select(
+                            p => p.ID
+                            )
+                        .Where(
+                            p => p != phase.ID
+                            ));
 
                     // Any phases in a different barrier are conflicts
-                    phase.ConflictPhases.UnionWith(Rings
+                    conflictPhases.UnionWith(Rings
                         .Where(
                             r => Rings.IndexOf(r) != Rings.IndexOf(ring)
                             )
@@ -46,6 +53,11 @@ namespace TTSController.Sequence
                         .Select(
                             p => p.ID)
                             );
+
+                    foreach (var phaseID in conflictPhases)
+                    {
+                        phase._callByConflictPhase[phaseID] = false;
+                    }
                 }
             }
         }
@@ -84,13 +96,27 @@ namespace TTSController.Sequence
         public void PlaceCall(int phaseID)
         {
             Phase callPhase = GetPhase(phaseID);
-            callPhase.PlaceCall();
+            callPhase.HasCall = true;
 
             foreach (var ring in Rings)
             {
                 foreach (var phase in ring.Phases)
                 {
-                    if (phase.ConflictPhases.Contains(callPhase.ID)) phase.PlaceOpposingCall();
+                    if (phase._callByConflictPhase.ContainsKey(callPhase.ID)) phase._callByConflictPhase[callPhase.ID] = true;
+                }
+            }
+        }
+
+        public void RemoveCall(int phaseID)
+        {
+            Phase callPhase = GetPhase(phaseID);
+            callPhase.HasCall = false;
+
+            foreach (var ring in Rings)
+            {
+                foreach (var phase in ring.Phases)
+                {
+                    if (phase._callByConflictPhase.ContainsKey(callPhase.ID)) phase._callByConflictPhase[callPhase.ID] = false;
                 }
             }
         }
