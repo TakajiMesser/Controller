@@ -69,13 +69,12 @@ namespace TTSControllerTest
 
             for (var i = 1; i <= 8; i++)
             {
-                var phase = new Phase(i);
+                var phase = new Phase(i, 25);
 
-                phase.Vehicle.Split = 25;
-                phase.Vehicle.MinGreen = 10;
-                phase.Vehicle.Yellow = 3.0;
-                phase.Vehicle.RedClearance = 2.0;
-                phase.Vehicle.MaxGreen = 15;
+                phase.VehiclePhase.MinGreen = 10;
+                phase.VehiclePhase.Yellow = 3.0;
+                phase.VehiclePhase.RedClearance = 2.0;
+                phase.VehiclePhase.MaxGreen = 15;
 
                 phases.Add(phase);
             }
@@ -143,7 +142,7 @@ namespace TTSControllerTest
             {
                 foreach (var phase in ring.Phases)
                 {
-                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.Vehicle.MaxGreen + ", MinGreen: " + phase.Vehicle.MinGreen + ", Yellow: " + phase.Vehicle.Yellow + ", RedClearance: " + phase.Vehicle.RedClearance);
+                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.VehiclePhase.MaxGreen + ", MinGreen: " + phase.VehiclePhase.MinGreen + ", Yellow: " + phase.VehiclePhase.Yellow + ", RedClearance: " + phase.VehiclePhase.RedClearance);
                 }
             }
 
@@ -161,32 +160,64 @@ namespace TTSControllerTest
 
         private static void ReportValues(TimingPlan controller, int iteration)
         {
-            List<string> values = new List<string>();
+            Console.Write(iteration.ToString() + "\t|");
+            Console.Write(controller.CycleSecond.ToString() + "\t|");
 
-            values.Add(iteration.ToString());
-            values.Add(controller.CycleSecond.ToString());
+            var vehicleStates = controller.GetVehiclePhaseStates();
+            var pedestrianStates = controller.GetPedestrianPhaseStates();
 
-            foreach (var phaseStates in controller.GetVehiclePhaseStates())
+            SortedSet<int> phaseIDs = new SortedSet<int>(vehicleStates.Keys.Union(pedestrianStates.Keys));
+
+            foreach (var phaseID in phaseIDs)
             {
-                values.Add(GetPhaseStateString(phaseStates.Value));
+                if (vehicleStates.ContainsKey(phaseID))
+                {
+                    switch (vehicleStates[phaseID])
+                    {
+                        case VehiclePhaseStates.Green:
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write(" G");
+                            Console.ResetColor();
+                            break;
+                        case VehiclePhaseStates.Yellow:
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.Write(" Y");
+                            Console.ResetColor();
+                            break;
+                        case VehiclePhaseStates.Red:
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write(" R");
+                            Console.ResetColor();
+                            break;
+                    }
+                }
+
+                if (pedestrianStates.ContainsKey(phaseID))
+                {
+                    switch (pedestrianStates[phaseID])
+                    {
+                        case PedestrianPhaseStates.Walk:
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                            Console.Write(" W");
+                            Console.ResetColor();
+                            break;
+                        case PedestrianPhaseStates.FlashingDoNotWalk:
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.Write(" F");
+                            Console.ResetColor();
+                            break;
+                        case PedestrianPhaseStates.DoNotWalk:
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            Console.Write(" D");
+                            Console.ResetColor();
+                            break;
+                    }
+                }
+
+                Console.Write("\t| ");
             }
 
-            Console.WriteLine(String.Join("\t| ", values));
-        }
-
-        private static string GetPhaseStateString(VehiclePhaseStates state)
-        {
-            switch (state)
-            {
-                case VehiclePhaseStates.Green:
-                    return "G";
-                case VehiclePhaseStates.Yellow:
-                    return "Y";
-                case VehiclePhaseStates.Red:
-                    return "R";
-                default:
-                    return "";
-            }
+            Console.Write("\n");
         }
     }
 }

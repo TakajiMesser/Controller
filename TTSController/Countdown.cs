@@ -34,7 +34,7 @@ namespace TTSController
 
         public void Reset(int duration)
         {
-            if (duration <= 0) throw new ArgumentOutOfRangeException("Duration must be positive and greater than zero");
+            // if (duration <= 0) throw new ArgumentOutOfRangeException("Duration must be positive and greater than zero");
 
             _duration = duration;
             _currentValue = duration;

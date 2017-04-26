@@ -15,7 +15,7 @@ namespace TTSController.Sequence
 
         public List<Phase> Phases { get { return _phases; } }
         public SortedSet<int> BarrierIndices { get { return _barrierIndices; } }
-        public int Duration { get { return _phases.Select(p => p.Vehicle.Split).Sum(); } }
+        public int Duration { get { return _phases.Select(p => p.Split).Sum(); } }
         public Phase CoordinatedPhase { get { return Phases.FirstOrDefault(p => p.IsCoordinated); } }
 
         public Ring(IEnumerable<Phase> phases)
@@ -35,7 +35,7 @@ namespace TTSController.Sequence
                 if (coordinatedPhase != null && phase.ConflictPhases.Contains(coordinatedPhase.ID) && !coordinatedPhase.IsZero)
                 {
                     // Unclear line...
-                    coordinatedPhase.Vehicle.ForceOff = coordinatedPhase.Vehicle.MinGreen;
+                    coordinatedPhase.VehiclePhase.ForceOff = coordinatedPhase.VehiclePhase.MinGreen;
 
                     coordinatedPhase.Advance(nSeconds);
 
@@ -53,13 +53,13 @@ namespace TTSController.Sequence
                     if (phase.FloatingForceOff)
                     {
                         // For floating force-off, just use the calculated green duration
-                        phase.Vehicle.ForceOff = phase.Vehicle.Split - (int)phase.Vehicle.Yellow - (int)phase.Vehicle.RedClearance;
+                        phase.VehiclePhase.ForceOff = phase.Split - (int)phase.VehiclePhase.Yellow - (int)phase.VehiclePhase.RedClearance;
                     }
                     else
                     {
                         // For fixed force-offs, use calculated force-off points in the sequence
                         // WRONG FOR NOW
-                        phase.Vehicle.ForceOff = phase.Vehicle.Split - (int)phase.Vehicle.Yellow - (int)phase.Vehicle.RedClearance;
+                        phase.VehiclePhase.ForceOff = phase.Split - (int)phase.VehiclePhase.Yellow - (int)phase.VehiclePhase.RedClearance;
                     }
 
                     // ADD SAFETY CHECK -> Don't advance this phase if any conflicting phases are running
@@ -83,7 +83,7 @@ namespace TTSController.Sequence
             // If no remaining phases are found that need servicing, run the coordinated phase instead (if it exists in this ring, and doesn't have any opposing calls or is already running)
             if (coordinatedPhase != null && !coordinatedPhase.HasOpposingCall)
             {
-                coordinatedPhase.Vehicle.HasCall = true;
+                coordinatedPhase.VehiclePhase.HasCall = true;
                 coordinatedPhase.Advance(nSeconds);
             }
         }

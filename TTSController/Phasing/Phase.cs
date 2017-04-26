@@ -10,6 +10,7 @@ namespace TTSController.Phasing
     public class Phase
     {
         private int _id;
+        private int _split;
         private VehiclePhase _vehiclePhase = new VehiclePhase();
         private PedestrianPhase _pedestrianPhase = new PedestrianPhase();
 
@@ -18,8 +19,9 @@ namespace TTSController.Phasing
         internal bool IsZero { get { return _vehiclePhase.IsZero && _pedestrianPhase.IsZero; } }
 
         public int ID { get { return _id; } }
-        public VehiclePhase Vehicle { get { return _vehiclePhase; } }
-        public PedestrianPhase Pedestrian { get { return _pedestrianPhase; } }
+        public int Split { get { return _split; } }
+        public VehiclePhase VehiclePhase { get { return _vehiclePhase; } }
+        public PedestrianPhase PedestrianPhase { get { return _pedestrianPhase; } }
         public bool IsCoordinated { get; set; }
         public bool FloatingForceOff { get; set; }
         public bool HasCall { get { return _vehiclePhase.HasCall || _pedestrianPhase.HasCall; } }
@@ -31,10 +33,23 @@ namespace TTSController.Phasing
             _id = id;
         }
 
+        public Phase(int id, int split)
+        {
+            if (id < 0) throw new ArgumentOutOfRangeException("Phase ID must be positive");
+            if (split < 0) throw new ArgumentOutOfRangeException("Split must be positive");
+
+            _id = id;
+            _split = split;
+        }
+
         internal void Advance(int nSeconds)
         {
             _vehiclePhase.Advance(nSeconds, IsCoordinated, HasOpposingCall);
-            _pedestrianPhase.Advance(nSeconds);
+            
+            if (_pedestrianPhase.HasCall)
+            {
+                _pedestrianPhase.Advance(nSeconds);
+            }
 
             if (_vehiclePhase.State == VehiclePhaseStates.Yellow)
             {

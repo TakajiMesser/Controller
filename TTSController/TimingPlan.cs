@@ -59,13 +59,13 @@ namespace TTSController
         public VehiclePhaseStates GetVehiclePhaseState(int phaseID)
         {
             Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
-            return phase.Vehicle.State;
+            return phase.VehiclePhase.State;
         }
 
         public PedestrianPhaseStates GetPedestrianPhaseState(int phaseID)
         {
             Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
-            return phase.Pedestrian.State;
+            return phase.PedestrianPhase.State;
         }
 
         public Dictionary<int, VehiclePhaseStates> GetVehiclePhaseStates()
@@ -78,7 +78,7 @@ namespace TTSController
                 {
                     foreach (var phase in ring.Phases)
                     {
-                        states.Add(phase.ID, phase.Vehicle.State);
+                        states.Add(phase.ID, phase.VehiclePhase.State);
                     }
                 }
             }
@@ -96,7 +96,7 @@ namespace TTSController
                 {
                     foreach (var phase in ring.Phases)
                     {
-                        states.Add(phase.ID, phase.Pedestrian.State);
+                        states.Add(phase.ID, phase.PedestrianPhase.State);
                     }
                 }
             }

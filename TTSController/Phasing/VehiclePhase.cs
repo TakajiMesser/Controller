@@ -29,16 +29,15 @@ namespace TTSController.Phasing
             get
             {
                 return (_state == VehiclePhaseStates.Red)
-                        && (_forceOffTimer.IsComplete)
-                        && (_maxGreenTimer.IsComplete)
-                        && (_minGreenTimer.IsComplete)
-                        && (_yellowTimer.IsComplete)
-                        && (_redClearanceTimer.IsComplete);
+                        && _forceOffTimer.IsComplete
+                        && _maxGreenTimer.IsComplete
+                        && _minGreenTimer.IsComplete
+                        && _yellowTimer.IsComplete
+                        && _redClearanceTimer.IsComplete;
             }
         }
 
         public VehiclePhaseStates State { get { return _state; } }
-        public int Split { get; set; }
         public int MinGreen { get; set; }
         public double MaxGreen { get; set; }
         public double Yellow { get; set; }
@@ -96,9 +95,9 @@ namespace TTSController.Phasing
         {
             _state = VehiclePhaseStates.Green;
 
-            if (_forceOffTimer.IsComplete) _forceOffTimer.Reset(ForceOff);
-            if (_maxGreenTimer.IsComplete) _maxGreenTimer.Reset((int)MaxGreen);
-            if (_minGreenTimer.IsComplete) _minGreenTimer.Reset(MinGreen);
+            if (ForceOff > 0) _forceOffTimer.Reset(ForceOff);
+            if (MaxGreen > 0.0) _maxGreenTimer.Reset((int)MaxGreen);
+            if (MinGreen > 0) _minGreenTimer.Reset(MinGreen);
             _redClearanceTimer = new CountDown();
 
             HasCall = false;
@@ -108,7 +107,7 @@ namespace TTSController.Phasing
         {
             _state = VehiclePhaseStates.Yellow;
 
-            if (_yellowTimer.IsComplete) _yellowTimer.Reset((int)Yellow);
+            if (Yellow > 0.0) _yellowTimer.Reset((int)Yellow);
             _forceOffTimer = new CountDown();
             _maxGreenTimer = new CountDown();
             _minGreenTimer = new CountDown();
@@ -118,7 +117,7 @@ namespace TTSController.Phasing
         {
             _state = VehiclePhaseStates.Red;
 
-            if (_redClearanceTimer.IsComplete) _redClearanceTimer.Reset((int)RedClearance);
+            if (RedClearance > 0.0) _redClearanceTimer.Reset((int)RedClearance);
             _yellowTimer = new CountDown();
         }
 

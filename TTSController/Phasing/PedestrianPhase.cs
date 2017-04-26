@@ -17,9 +17,25 @@ namespace TTSController.Phasing
     public class PedestrianPhase
     {
         private PedestrianPhaseStates _state = PedestrianPhaseStates.DoNotWalk;
+        private CountDown _walkTimer = new CountDown();
+        private CountDown _pedClearanceTimer = new CountDown();
+        private CountDown _doNotWalkClearanceTimer = new CountDown();
+
+        internal bool IsZero
+        {
+            get
+            {
+                return (_state == PedestrianPhaseStates.DoNotWalk)
+                    && _walkTimer.IsComplete
+                    && _pedClearanceTimer.IsComplete
+                    && _doNotWalkClearanceTimer.IsComplete;
+            }
+        }
 
         public PedestrianPhaseStates State { get { return _state; } }
-        public bool IsZero { get { return _state == PedestrianPhaseStates.DoNotWalk; } }
+        public int Walk { get; set; }
+        public int PedClearance { get; set; }
+        public double DoNotWalkClearance { get; set; }
         public bool HasCall { get; set; }
 
         public PedestrianPhase()
@@ -31,52 +47,51 @@ namespace TTSController.Phasing
             switch (_state)
             {
                 case PedestrianPhaseStates.Walk:
+                    _walkTimer.Decrement(nSeconds);
+                    if (_walkTimer.IsComplete) TransitionToFlashingDoNotWalk();
                     break;
                 case PedestrianPhaseStates.FlashingDoNotWalk:
+                    _pedClearanceTimer.Decrement(nSeconds);
+                    if (_pedClearanceTimer.IsComplete) TransitionToDoNotWalk();
                     break;
                 case PedestrianPhaseStates.DoNotWalk:
+                    _doNotWalkClearanceTimer.Decrement(nSeconds);
+                    if (_doNotWalkClearanceTimer.IsComplete) TransitionToWalk();
                     break;
             }
         }
 
-        /*private void TransitionToGreen()
+        private void TransitionToWalk()
         {
-            _state = PhaseStates.Green;
+            _state = PedestrianPhaseStates.Walk;
 
-            if (_forceOffTimer.IsComplete) _forceOffTimer.Reset(ForceOff);
-            if (_maxGreenTimer.IsComplete) _maxGreenTimer.Reset((int)MaxGreen);
-            if (_minGreenTimer.IsComplete) _minGreenTimer.Reset(MinGreen);
-            _redClearanceTimer = new CountDown();
-
-            HasCall = false;
+            if (Walk > 0) _walkTimer.Reset(Walk);
+            _doNotWalkClearanceTimer = new CountDown();
         }
 
-        private void TransitionToYellow()
+        private void TransitionToFlashingDoNotWalk()
         {
-            _state = PhaseStates.Yellow;
+            _state = PedestrianPhaseStates.FlashingDoNotWalk;
 
-            if (_yellowTimer.IsComplete) _yellowTimer.Reset((int)Yellow);
-            _forceOffTimer = new CountDown();
-            _maxGreenTimer = new CountDown();
-            _minGreenTimer = new CountDown();
-
-            foreach (var phase in _callByConflictPhase.Keys.ToList())
-            {
-                _callByConflictPhase[phase] = false;
-            }
+            if (PedClearance > 0) _pedClearanceTimer.Reset(PedClearance);
+            _walkTimer = new CountDown();
         }
 
-        private void TransitionToRed()
+        private void TransitionToDoNotWalk()
         {
-            _state = PhaseStates.Red;
+            _state = PedestrianPhaseStates.DoNotWalk;
 
-            if (_redClearanceTimer.IsComplete) _redClearanceTimer.Reset((int)RedClearance);
-            _yellowTimer = new CountDown();
-        }*/
+            if (DoNotWalkClearance > 0.0) _doNotWalkClearanceTimer.Reset((int)DoNotWalkClearance);
+            _pedClearanceTimer = new CountDown();
+        }
 
         internal void Zero()
         {
             _state = PedestrianPhaseStates.DoNotWalk;
+
+            _walkTimer = new CountDown();
+            _pedClearanceTimer = new CountDown();
+            _doNotWalkClearanceTimer = new CountDown();
 
             HasCall = false;
         }
