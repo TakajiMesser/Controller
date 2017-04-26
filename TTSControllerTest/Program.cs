@@ -65,22 +65,27 @@ namespace TTSControllerTest
             var controller = new TimingPlan();
             var pattern = new Pattern(1);
 
-            var phases1 = new List<Phase>();
-            phases1.Add(new Phase(1, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15, IsCoordinated = true });
-            phases1.Add(new Phase(2, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases1.Add(new Phase(3, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases1.Add(new Phase(4, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
+            var phases = new List<Phase>();
 
-            Ring ring1 = new Ring(phases1);
+            for (var i = 1; i <= 8; i++)
+            {
+                var phase = new Phase(i);
+
+                phase.Vehicle.Split = 25;
+                phase.Vehicle.MinGreen = 10;
+                phase.Vehicle.Yellow = 3.0;
+                phase.Vehicle.RedClearance = 2.0;
+                phase.Vehicle.MaxGreen = 15;
+
+                phases.Add(phase);
+            }
+
+            phases.First().IsCoordinated = true;
+
+            Ring ring1 = new Ring(phases.GetRange(0, 4));
             ring1.BarrierIndices.Add(2);
 
-            var phases2 = new List<Phase>();
-            phases2.Add(new Phase(5, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases2.Add(new Phase(6, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases2.Add(new Phase(7, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-            phases2.Add(new Phase(8, 25) { MinGreen = 10, Yellow = 3.0, RedClearance = 2.0, MaxGreen = 15 });
-
-            Ring ring2 = new Ring(phases2);
+            Ring ring2 = new Ring(phases.GetRange(4, 4));
             ring2.BarrierIndices.Add(2);
 
             var rings = new List<Ring>() { ring1, ring2 };
@@ -138,7 +143,7 @@ namespace TTSControllerTest
             {
                 foreach (var phase in ring.Phases)
                 {
-                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.MaxGreen + ", MinGreen: " + phase.MinGreen + ", Yellow: " + phase.Yellow + ", RedClearance: " + phase.RedClearance);
+                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.Vehicle.MaxGreen + ", MinGreen: " + phase.Vehicle.MinGreen + ", Yellow: " + phase.Vehicle.Yellow + ", RedClearance: " + phase.Vehicle.RedClearance);
                 }
             }
 
@@ -161,7 +166,7 @@ namespace TTSControllerTest
             values.Add(iteration.ToString());
             values.Add(controller.CycleSecond.ToString());
 
-            foreach (var phaseStates in controller.GetPhaseStates())
+            foreach (var phaseStates in controller.GetVehiclePhaseStates())
             {
                 values.Add(GetPhaseStateString(phaseStates.Value));
             }
@@ -169,15 +174,15 @@ namespace TTSControllerTest
             Console.WriteLine(String.Join("\t| ", values));
         }
 
-        private static string GetPhaseStateString(PhaseStates state)
+        private static string GetPhaseStateString(VehiclePhaseStates state)
         {
             switch (state)
             {
-                case PhaseStates.Green:
+                case VehiclePhaseStates.Green:
                     return "G";
-                case PhaseStates.Yellow:
+                case VehiclePhaseStates.Yellow:
                     return "Y";
-                case PhaseStates.Red:
+                case VehiclePhaseStates.Red:
                     return "R";
                 default:
                     return "";

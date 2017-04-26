@@ -96,7 +96,7 @@ namespace TTSController.Sequence
         public void PlaceCall(int phaseID)
         {
             Phase callPhase = GetPhase(phaseID);
-            callPhase.HasCall = true;
+            callPhase.Vehicle.HasCall = true;
 
             foreach (var ring in Rings)
             {
@@ -110,7 +110,7 @@ namespace TTSController.Sequence
         public void RemoveCall(int phaseID)
         {
             Phase callPhase = GetPhase(phaseID);
-            callPhase.HasCall = false;
+            callPhase.Vehicle.HasCall = false;
 
             foreach (var ring in Rings)
             {

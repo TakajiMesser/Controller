@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Countdown.cs" />
+    <Compile Include="Phasing\PedestrianPhase.cs" />
+    <Compile Include="Phasing\VehiclePhase.cs" />
     <Compile Include="Phasing\Phase.cs" />
     <Compile Include="Pattern.cs" />
     <Compile Include="Sequence\Ring.cs" />

@@ -56,15 +56,21 @@ namespace TTSController
             }
         }
 
-        public PhaseStates GetPhaseState(int phaseID)
+        public VehiclePhaseStates GetVehiclePhaseState(int phaseID)
         {
             Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
-            return phase.State;
+            return phase.Vehicle.State;
         }
 
-        public Dictionary<int, PhaseStates> GetPhaseStates()
+        public PedestrianPhaseStates GetPedestrianPhaseState(int phaseID)
         {
-            Dictionary<int, PhaseStates> states = new Dictionary<int, PhaseStates>();
+            Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
+            return phase.Pedestrian.State;
+        }
+
+        public Dictionary<int, VehiclePhaseStates> GetVehiclePhaseStates()
+        {
+            Dictionary<int, VehiclePhaseStates> states = new Dictionary<int, VehiclePhaseStates>();
 
             foreach (var pattern in _patterns)
             {
@@ -72,7 +78,25 @@ namespace TTSController
                 {
                     foreach (var phase in ring.Phases)
                     {
-                        states.Add(phase.ID, phase.State);
+                        states.Add(phase.ID, phase.Vehicle.State);
+                    }
+                }
+            }
+
+            return states;
+        }
+
+        public Dictionary<int, PedestrianPhaseStates> GetPedestrianPhaseStates()
+        {
+            Dictionary<int, PedestrianPhaseStates> states = new Dictionary<int, PedestrianPhaseStates>();
+
+            foreach (var pattern in _patterns)
+            {
+                foreach (var ring in pattern.Value.Sequence.Rings)
+                {
+                    foreach (var phase in ring.Phases)
+                    {
+                        states.Add(phase.ID, phase.Pedestrian.State);
                     }
                 }
             }
