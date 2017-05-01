@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TTSController.Phasing;
-using TTSController.Sequence;
+using TTSController.Sequencing;
 
 namespace TTSController
 {
     public class Pattern
     {
         private int _offsetReferencePoint;
+        private Sequence _sequence = new Sequence();
 
         public int ID { get; set; }
         public int CycleLength { get { return Sequence.Duration; } }
         public int OffsetReferencePoint { get { return _offsetReferencePoint; } }
 
-        public RingSequence Sequence { get; set; }
+        public Sequence Sequence { get { return _sequence; } }
 
         public Pattern(int id)
         {
@@ -24,19 +25,6 @@ namespace TTSController
 
             ID = id;
             _offsetReferencePoint = 0;
-        }
-
-        public Phase GetPhase(int id)
-        {
-            foreach (var ring in Sequence.Rings)
-            {
-                foreach (var phase in ring.Phases)
-                {
-                    if (phase.ID == id) return phase;
-                }
-            }
-
-            throw new KeyNotFoundException("Phase with id " + id + " was not found in Sequence");
         }
     }
 }

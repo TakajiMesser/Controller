@@ -74,11 +74,14 @@ namespace TTSController
 
             foreach (var pattern in _patterns)
             {
-                foreach (var ring in pattern.Value.Sequence.Rings)
+                foreach (var ringGroup in pattern.Value.Sequence.RingGroups)
                 {
-                    foreach (var phase in ring.Phases)
+                    foreach (var ring in ringGroup.Rings)
                     {
-                        states.Add(phase.ID, phase.VehiclePhase.State);
+                        foreach (var phase in ring.Phases)
+                        {
+                            states.Add(phase.ID, phase.VehiclePhase.State);
+                        }
                     }
                 }
             }
@@ -92,11 +95,14 @@ namespace TTSController
 
             foreach (var pattern in _patterns)
             {
-                foreach (var ring in pattern.Value.Sequence.Rings)
+                foreach (var ringGroup in pattern.Value.Sequence.RingGroups)
                 {
-                    foreach (var phase in ring.Phases)
+                    foreach (var ring in ringGroup.Rings)
                     {
-                        states.Add(phase.ID, phase.PedestrianPhase.State);
+                        foreach (var phase in ring.Phases)
+                        {
+                            states.Add(phase.ID, phase.PedestrianPhase.State);
+                        }
                     }
                 }
             }

@@ -45,12 +45,9 @@ namespace TTSController.Phasing
         internal void Advance(int nSeconds)
         {
             _vehiclePhase.Advance(nSeconds, IsCoordinated, HasOpposingCall);
-            
-            if (_pedestrianPhase.HasCall)
-            {
-                _pedestrianPhase.Advance(nSeconds);
-            }
+            _pedestrianPhase.Advance(nSeconds);
 
+            // Clear out the opposing phase calls once this phase enters clearance
             if (_vehiclePhase.State == VehiclePhaseStates.Yellow)
             {
                 foreach (var phase in _callByConflictPhase.Keys.ToList())

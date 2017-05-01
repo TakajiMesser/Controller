@@ -38,9 +38,7 @@ namespace TTSController.Phasing
         public double DoNotWalkClearance { get; set; }
         public bool HasCall { get; set; }
 
-        public PedestrianPhase()
-        {
-        }
+        public PedestrianPhase() { }
 
         internal void Advance(int nSeconds)
         {
@@ -56,7 +54,7 @@ namespace TTSController.Phasing
                     break;
                 case PedestrianPhaseStates.DoNotWalk:
                     _doNotWalkClearanceTimer.Decrement(nSeconds);
-                    if (_doNotWalkClearanceTimer.IsComplete) TransitionToWalk();
+                    if (_doNotWalkClearanceTimer.IsComplete && HasCall) TransitionToWalk();
                     break;
             }
         }

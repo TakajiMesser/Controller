@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using TTSController;
 using TTSController.Phasing;
-using TTSController.Sequence;
+using TTSController.Sequencing;
 
 namespace TTSControllerTest
 {
@@ -71,6 +71,11 @@ namespace TTSControllerTest
             {
                 var phase = new Phase(i, 25);
 
+                if (i == 1)
+                {
+                    phase.IsCoordinated = true;
+                }
+
                 phase.VehiclePhase.MinGreen = 10;
                 phase.VehiclePhase.Yellow = 3.0;
                 phase.VehiclePhase.RedClearance = 2.0;
@@ -79,77 +84,86 @@ namespace TTSControllerTest
                 phases.Add(phase);
             }
 
-            phases.First().IsCoordinated = true;
-
-            Ring ring1 = new Ring(phases.GetRange(0, 4));
+            Ring ring1 = new Ring();
+            ring1.Phases.AddRange(phases.GetRange(0, 4));
             ring1.BarrierIndices.Add(2);
 
-            Ring ring2 = new Ring(phases.GetRange(4, 4));
+            Ring ring2 = new Ring();
+            ring2.Phases.AddRange(phases.GetRange(4, 4));
             ring2.BarrierIndices.Add(2);
 
-            var rings = new List<Ring>() { ring1, ring2 };
-            pattern.Sequence = new RingSequence(rings);
+            RingGroup ringGroup = new RingGroup();
+            ringGroup.Rings.Add(ring1);
+            ringGroup.Rings.Add(ring2);
+
+            pattern.Sequence.RingGroups.Add(ringGroup);
 
             controller.AddPattern(pattern);
             return controller;
         }
 
-        public static void PlaceCalls(RingSequence sequence, int iteration)
+        public static void PlaceCalls(Sequence sequence, int iteration)
         {
             // Place calls all the time, for now
             if (iteration == 1)
             {
-                sequence.PlaceCall(1);
-                sequence.PlaceCall(2);
+                sequence.PlaceVehicleCall(1);
+                sequence.PlaceVehicleCall(2);
             }
 
             if (iteration == 49 || iteration == 127)
             {
-                sequence.PlaceCall(3);
-                sequence.PlaceCall(4);
+                sequence.PlaceVehicleCall(3);
+                sequence.PlaceVehicleCall(4);
             }
         }
 
-        private static void WriteRingSequence(RingSequence sequence)
+        private static void WriteRingSequence(Sequence sequence)
         {
             Console.WriteLine("Ring Sequence:");
             Console.WriteLine();
 
-            foreach (var ring in sequence.Rings)
+            foreach (var ringGroup in sequence.RingGroups)
             {
-                List<string> items = new List<string>();
-
-                for (var i = 0; i < ring.Phases.Count; i++)
+                foreach (var ring in ringGroup.Rings)
                 {
-                    if (ring.BarrierIndices.Contains(i))
+                    List<string> items = new List<string>();
+
+                    for (var i = 0; i < ring.Phases.Count; i++)
                     {
-                        items.Add("|");
+                        if (ring.BarrierIndices.Contains(i))
+                        {
+                            items.Add("|");
+                        }
+
+                        Phase phase = ring.Phases[i];
+                        items.Add(phase.ID.ToString());
                     }
 
-                    Phase phase = ring.Phases[i];
-                    items.Add(phase.ID.ToString());
+                    Console.WriteLine(String.Join(" ", items));
                 }
-
-                Console.WriteLine(String.Join(" ", items));
             }
 
             Console.WriteLine();
         }
 
-        private static void WritePhases(RingSequence sequence)
+        private static void WritePhases(Sequence sequence)
         {
-            foreach (var ring in sequence.Rings)
+            foreach (var ringGroup in sequence.RingGroups)
             {
-                foreach (var phase in ring.Phases)
+                foreach (var ring in ringGroup.Rings)
                 {
-                    Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.VehiclePhase.MaxGreen + ", MinGreen: " + phase.VehiclePhase.MinGreen + ", Yellow: " + phase.VehiclePhase.Yellow + ", RedClearance: " + phase.VehiclePhase.RedClearance);
+                    foreach (var phase in ring.Phases)
+                    {
+                        Console.WriteLine("Phase " + phase.ID + "| Coordinated: " + phase.IsCoordinated + ", MaxGreen: " + phase.VehiclePhase.MaxGreen + ", MinGreen: " + phase.VehiclePhase.MinGreen + ", Yellow: " + phase.VehiclePhase.Yellow + ", RedClearance: " + phase.VehiclePhase.RedClearance);
+                    }
                 }
             }
 
             Console.WriteLine();
         }
 
-        private static void WriteHeaders(RingSequence sequence)
+        private static void WriteHeaders(Sequence sequence)
         {
             List<string> headers = new List<string>() { "CA", "CS" };
             headers.AddRange(sequence.GetPhases().Select(p => "P" + p.ID));
@@ -197,7 +211,7 @@ namespace TTSControllerTest
                     switch (pedestrianStates[phaseID])
                     {
                         case PedestrianPhaseStates.Walk:
-                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                            Console.ForegroundColor = ConsoleColor.White;
                             Console.Write(" W");
                             Console.ResetColor();
                             break;

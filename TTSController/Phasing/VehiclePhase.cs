@@ -44,9 +44,7 @@ namespace TTSController.Phasing
         public double RedClearance { get; set; }
         public bool HasCall { get; set; }
 
-        public VehiclePhase()
-        {
-        }
+        public VehiclePhase() { }
 
         internal void Advance(int nSeconds, bool isCoordinated, bool hasOpposingCall)
         {
@@ -86,7 +84,7 @@ namespace TTSController.Phasing
                     break;
                 case VehiclePhaseStates.Red:
                     _redClearanceTimer.Decrement(nSeconds);
-                    if (_redClearanceTimer.IsComplete && HasCall) TransitionToGreen();
+                    if (_redClearanceTimer.IsComplete && (HasCall)) TransitionToGreen();
                     break;
             }
         }

@@ -45,8 +45,9 @@
     <Compile Include="Phasing\VehiclePhase.cs" />
     <Compile Include="Phasing\Phase.cs" />
     <Compile Include="Pattern.cs" />
-    <Compile Include="Sequence\Ring.cs" />
-    <Compile Include="Sequence\RingSequence.cs" />
+    <Compile Include="Sequencing\RingGroup.cs" />
+    <Compile Include="Sequencing\Ring.cs" />
+    <Compile Include="Sequencing\Sequence.cs" />
     <Compile Include="TimingPlan.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
