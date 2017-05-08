@@ -10,7 +10,7 @@ namespace TTSController.Sequencing
     public class Ring
     {
         private List<Phase> _phases = new List<Phase>();
-        private HashSet<int> _servicedPhaseIDs = new HashSet<int>();
+        private int _servicePhaseIndex = 0;
         private SortedSet<int> _barrierIndices = new SortedSet<int>();
 
         public List<Phase> Phases { get { return _phases; } }
@@ -22,9 +22,7 @@ namespace TTSController.Sequencing
 
         internal void Advance(int nSeconds, int ringSecond)
         {
-            if (_phases.Count == _servicedPhaseIDs.Count) _servicedPhaseIDs.Clear();
-
-            //  Possible Extra Check -> Any time a new phase is starting, check all of its conflicting phases to ensure that none of them are already running?
+            if (ringSecond == 0) _servicePhaseIndex = 0;
 
             // Is there a phase that is already running?
             Phase phase = _phases.FirstOrDefault(p => !p.IsZero);
@@ -39,7 +37,6 @@ namespace TTSController.Sequencing
                     Phase nextPhase = GetNextPhaseToService();
                     if (nextPhase != null)
                     {
-                        _servicedPhaseIDs.Add(nextPhase.ID);
                         nextPhase.Advance(nSeconds);
                     }
                 }
@@ -50,10 +47,33 @@ namespace TTSController.Sequencing
                 Phase nextPhase = GetNextPhaseToService();
                 if (nextPhase != null)
                 {
-                    _servicedPhaseIDs.Add(nextPhase.ID);
                     nextPhase.Advance(nSeconds);
                 }
             }
+        }
+
+        private Phase GetNextPhaseToService()
+        {
+            for (var i = _servicePhaseIndex; i < _phases.Count; i++)
+            {
+                var phase = _phases[_servicePhaseIndex];
+                if (phase.HasCall)
+                {
+                    phase.VehiclePhase.ForceOff = phase.Split - (int)phase.VehiclePhase.Yellow - (int)phase.VehiclePhase.RedClearance;
+                    _servicePhaseIndex++;
+                    return phase;
+                }
+            }
+
+            // If no phase is found, return the coordinated phase
+            // Ensure that the coordinated phase gets a call so that it can begin timing
+            var coordinatedPhase = CoordinatedPhase;
+            if (coordinatedPhase != null)
+            {
+                coordinatedPhase.VehiclePhase.HasCall = true;
+            }
+
+            return CoordinatedPhase;
         }
 
         internal void Zero()
@@ -61,28 +81,6 @@ namespace TTSController.Sequencing
             foreach (var phase in _phases)
             {
                 phase.Zero();
-            }
-        }
-
-        private Phase GetNextPhaseToService()
-        {
-            // If no phase is found, return the coordinated phase
-            Phase phase = _phases.FirstOrDefault(p => p.HasCall && !_servicedPhaseIDs.Contains(p.ID));
-            if (phase != null)
-            {
-                phase.VehiclePhase.ForceOff = phase.Split - (int)phase.VehiclePhase.Yellow - (int)phase.VehiclePhase.RedClearance;
-                return phase;
-            }
-            else
-            {
-                // Ensure that the coordinated phase gets a call so that it can begin timing
-                var coordinatedPhase = CoordinatedPhase;
-                if (coordinatedPhase != null)
-                {
-                    coordinatedPhase.VehiclePhase.HasCall = true;
-                }
-
-                return CoordinatedPhase;
             }
         }
     }
