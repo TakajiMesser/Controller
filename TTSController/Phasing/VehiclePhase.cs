@@ -18,6 +18,7 @@ namespace TTSController.Phasing
     {
         private VehiclePhaseStates _state = VehiclePhaseStates.Red;
         private CountDown _forceOffTimer = new CountDown();
+        private CountDown _gapTimer = new CountDown();
         private CountDown _maxGreenTimer = new CountDown();
         private CountDown _minGreenTimer = new CountDown();
         private CountDown _yellowTimer = new CountDown();
@@ -38,8 +39,9 @@ namespace TTSController.Phasing
         }
 
         public VehiclePhaseStates State { get { return _state; } }
-        public int MinGreen { get; set; }
+        public double GapTime { get; set; }
         public double MaxGreen { get; set; }
+        public int MinGreen { get; set; }
         public double Yellow { get; set; }
         public double RedClearance { get; set; }
         public bool HasCall { get; set; }
@@ -53,6 +55,12 @@ namespace TTSController.Phasing
                 case VehiclePhaseStates.Green:
                     _minGreenTimer.Decrement(nSeconds);
                     _forceOffTimer.Decrement(nSeconds);
+                    _gapTimer.Decrement(nSeconds);
+
+                    if (HasCall)
+                    {
+                        _gapTimer.Reset((int)GapTime);
+                    }
 
                     // If this phase has an opposing call, decrement the max green timer
                     // Otherwise, reset the max green timer
@@ -73,6 +81,7 @@ namespace TTSController.Phasing
                         }
                         else
                         {
+                            if (_gapTimer.IsComplete) TransitionToYellow();
                             if (_forceOffTimer.IsComplete) TransitionToYellow();
                             if (_maxGreenTimer.IsComplete) TransitionToYellow();
                         }
