@@ -1,25 +1,20 @@
-﻿using System;
+﻿using Controller.Phasing;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TTSController.Phasing;
 
-namespace TTSController.Sequencing
+namespace Controller.Sequencing
 {
     public class Sequence
     {
-        private List<RingGroup> _ringGroups = new List<RingGroup>();
-
-        public List<RingGroup> RingGroups { get { return _ringGroups; } }
-        public int Duration { get { return RingGroups.Select(r => r.Duration).Max(); } }
+        public List<RingGroup> RingGroups { get; } = new List<RingGroup>();
+        public int Duration => RingGroups.Select(r => r.Duration).Max();
 
         public Sequence() { }
 
         internal void Advance(int nSeconds, int cycleSecond)
         {
-            foreach (var ringGroup in _ringGroups)
+            foreach (var ringGroup in RingGroups)
             {
                 ringGroup.Advance(nSeconds, cycleSecond);
             }
@@ -27,7 +22,7 @@ namespace TTSController.Sequencing
 
         internal void Zero()
         {
-            foreach (var ringGroup in _ringGroups)
+            foreach (var ringGroup in RingGroups)
             {
                 ringGroup.Zero();
             }
@@ -107,19 +102,18 @@ namespace TTSController.Sequencing
             throw new ArgumentOutOfRangeException("Phase " + phaseID + " not found in sequence");
         }
 
-        public List<Phase> GetPhases()
+        public IEnumerable<Phase> GetPhases()
         {
-            List<Phase> phases = new List<Phase>();
-
             foreach (var ringGroup in RingGroups)
             {
                 foreach (var ring in ringGroup.Rings)
                 {
-                    phases.AddRange(ring.Phases);
+                    foreach (var phase in ring.Phases)
+                    {
+                        yield return phase;
+                    }
                 }
             }
-
-            return phases;
         }
     }
 }

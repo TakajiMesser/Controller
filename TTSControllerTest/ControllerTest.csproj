@@ -50,9 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TTSController\TTSController.csproj">
+    <ProjectReference Include="..\TTSController\Controller.csproj">
       <Project>{b84aab98-2534-472a-a234-96d45b168811}</Project>
-      <Name>TTSController</Name>
+      <Name>Controller</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

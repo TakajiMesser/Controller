@@ -1,51 +1,41 @@
-﻿using System;
+﻿using Controller.Phasing;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TTSController.Phasing;
 
-namespace TTSController
+namespace Controller
 {
     public class TimingPlan
     {
-        private int _cycleSecond = 0;
-        private int _currentPattern = 0;
-        private Dictionary<int, Pattern> _patterns = new Dictionary<int, Pattern>();
+        public int CycleSecond { get; private set; }
+        public Dictionary<int, Pattern> Patterns { get; private set; } = new Dictionary<int, Pattern>();
+        public Dictionary<int, Phase> DefaultPhases { get; set; } = new Dictionary<int, Phase>();
+        public Pattern DefaultPattern { get; set; } = new Pattern(1);
 
-        public int CycleSecond { get { return _cycleSecond; } }
-        public int CurrentPattern {
-            get { return _currentPattern; }
-            set {
-                if (!_patterns.ContainsKey(value)) throw new ArgumentOutOfRangeException("Pattern ID was not found in Timing Plan");
+        public int CurrentPattern
+        {
+            get => _currentPattern;
+            set
+            {
+                if (!Patterns.ContainsKey(value)) throw new ArgumentOutOfRangeException("Pattern ID was not found in Timing Plan");
                 _currentPattern = value;
             }
         }
-        public Dictionary<int, Pattern> Patterns { get { return _patterns; } }
 
-        public Dictionary<int, Phase> DefaultPhases { get; set; }
-        public Pattern DefaultPattern { get; set; }
+        private int _currentPattern = 0;
 
-        public TimingPlan()
-        {
-            DefaultPhases = new Dictionary<int, Phase>();
-            DefaultPattern = new Pattern(1);
-        }
+        public TimingPlan() { }
 
-        public void AddPattern(Pattern pattern)
-        {
-            _patterns.Add(pattern.ID, pattern);
-        }
+        public void AddPattern(Pattern pattern) => Patterns.Add(pattern.ID, pattern);
 
         public void AdvanceController(int nSeconds)
         {
-            Pattern pattern = _patterns[CurrentPattern];
+            Pattern pattern = Patterns[CurrentPattern];
 
             int cycleLength = pattern.CycleLength;
-            _cycleSecond = _cycleSecond + nSeconds;
+            CycleSecond += nSeconds;
 
-            pattern.Sequence.Advance(nSeconds, _cycleSecond);
-            _cycleSecond %= cycleLength;
+            pattern.Sequence.Advance(nSeconds, CycleSecond);
+            CycleSecond %= cycleLength;
         }
 
         public void Zero()
@@ -56,23 +46,15 @@ namespace TTSController
             }
         }
 
-        public VehiclePhaseStates GetVehiclePhaseState(int phaseID)
-        {
-            Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
-            return phase.VehiclePhase.State;
-        }
+        public VehiclePhaseStates GetVehiclePhaseState(int phaseID) => Patterns[_currentPattern].Sequence.GetPhase(phaseID).VehiclePhase.State;
 
-        public PedestrianPhaseStates GetPedestrianPhaseState(int phaseID)
-        {
-            Phase phase = _patterns[_currentPattern].Sequence.GetPhase(phaseID);
-            return phase.PedestrianPhase.State;
-        }
+        public PedestrianPhaseStates GetPedestrianPhaseState(int phaseID) => Patterns[_currentPattern].Sequence.GetPhase(phaseID).PedestrianPhase.State;
 
         public Dictionary<int, VehiclePhaseStates> GetVehiclePhaseStates()
         {
             Dictionary<int, VehiclePhaseStates> states = new Dictionary<int, VehiclePhaseStates>();
 
-            foreach (var pattern in _patterns)
+            foreach (var pattern in Patterns)
             {
                 foreach (var ringGroup in pattern.Value.Sequence.RingGroups)
                 {
@@ -93,7 +75,7 @@ namespace TTSController
         {
             Dictionary<int, PedestrianPhaseStates> states = new Dictionary<int, PedestrianPhaseStates>();
 
-            foreach (var pattern in _patterns)
+            foreach (var pattern in Patterns)
             {
                 foreach (var ringGroup in pattern.Value.Sequence.RingGroups)
                 {

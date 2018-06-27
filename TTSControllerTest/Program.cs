@@ -1,20 +1,17 @@
-﻿using System;
+﻿using Controller;
+using Controller.Phasing;
+using Controller.Sequencing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using TTSController;
-using TTSController.Phasing;
-using TTSController.Sequencing;
-
-namespace TTSControllerTest
+namespace ControllerTest
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("TTSControllerTest Console Application");
+            Console.WriteLine("ControllerTest Console Application");
 
             string option;
             do

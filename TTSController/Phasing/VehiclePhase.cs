@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TTSController.Phasing
+﻿namespace Controller.Phasing
 {
     public enum VehiclePhaseStates
     {
@@ -16,7 +9,6 @@ namespace TTSController.Phasing
 
     public class VehiclePhase
     {
-        private VehiclePhaseStates _state = VehiclePhaseStates.Red;
         private CountDown _forceOffTimer = new CountDown();
         private CountDown _gapTimer = new CountDown();
         private CountDown _maxGreenTimer = new CountDown();
@@ -25,20 +17,10 @@ namespace TTSController.Phasing
         private CountDown _redClearanceTimer = new CountDown();
 
         internal int ForceOff { get; set; }
-        internal bool IsZero
-        {
-            get
-            {
-                return (_state == VehiclePhaseStates.Red)
-                        && _forceOffTimer.IsComplete
-                        && _maxGreenTimer.IsComplete
-                        && _minGreenTimer.IsComplete
-                        && _yellowTimer.IsComplete
-                        && _redClearanceTimer.IsComplete;
-            }
-        }
+        internal bool IsZero => (State == VehiclePhaseStates.Red)
+            && _forceOffTimer.IsComplete && _maxGreenTimer.IsComplete && _minGreenTimer.IsComplete && _yellowTimer.IsComplete && _redClearanceTimer.IsComplete;
 
-        public VehiclePhaseStates State { get { return _state; } }
+        public VehiclePhaseStates State { get; private set; } = VehiclePhaseStates.Red;
         public double GapTime { get; set; }
         public double MaxGreen { get; set; }
         public int MinGreen { get; set; }
@@ -50,7 +32,7 @@ namespace TTSController.Phasing
 
         internal void Advance(int nSeconds, bool isCoordinated, bool hasOpposingCall)
         {
-            switch (_state)
+            switch (State)
             {
                 case VehiclePhaseStates.Green:
                     _minGreenTimer.Decrement(nSeconds);
@@ -100,7 +82,7 @@ namespace TTSController.Phasing
 
         private void TransitionToGreen()
         {
-            _state = VehiclePhaseStates.Green;
+            State = VehiclePhaseStates.Green;
 
             if (ForceOff > 0) _forceOffTimer.Reset(ForceOff);
             if (MaxGreen > 0.0) _maxGreenTimer.Reset((int)MaxGreen);
@@ -112,7 +94,7 @@ namespace TTSController.Phasing
 
         private void TransitionToYellow()
         {
-            _state = VehiclePhaseStates.Yellow;
+            State = VehiclePhaseStates.Yellow;
 
             if (Yellow > 0.0) _yellowTimer.Reset((int)Yellow);
             _forceOffTimer = new CountDown();
@@ -122,7 +104,7 @@ namespace TTSController.Phasing
 
         private void TransitionToRed()
         {
-            _state = VehiclePhaseStates.Red;
+            State = VehiclePhaseStates.Red;
 
             if (RedClearance > 0.0) _redClearanceTimer.Reset((int)RedClearance);
             _yellowTimer = new CountDown();
@@ -130,7 +112,7 @@ namespace TTSController.Phasing
 
         internal void Zero()
         {
-            _state = VehiclePhaseStates.Red;
+            State = VehiclePhaseStates.Red;
 
             _forceOffTimer = new CountDown();
             _maxGreenTimer = new CountDown();

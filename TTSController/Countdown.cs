@@ -1,32 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TTSController
+namespace Controller
 {
     public class CountDownEventArgs : EventArgs
     {
-        private int _duration;
-
-        public int Duration { get { return _duration; } }
+        public int Duration { get; private set; }
 
         public CountDownEventArgs(int duration)
         {
-            _duration = duration;
+            Duration = duration;
         }
     }
 
     public class CountDown
     {
-        private int _duration = 0;
-        private int _currentValue = 0;
+        public int Duration { get; private set; } = 0;
+        public int Current { get; private set; } = 0;
 
-        public int Duration { get { return _duration; } }
-        public int Current { get { return _currentValue; } }
-
-        public bool IsComplete { get { return _currentValue == 0; } }
+        public bool IsComplete => Current == 0;
 
         public EventHandler<CountDownEventArgs> Completed;
 
@@ -36,22 +27,23 @@ namespace TTSController
         {
             // if (duration <= 0) throw new ArgumentOutOfRangeException("Duration must be positive and greater than zero");
 
-            _duration = duration;
-            _currentValue = duration;
+            Duration = duration;
+            Current = duration;
         }
 
         public void Decrement(int amount = 1)
         {
-            if (_currentValue > 0) // throw new InvalidOperationException("CountDown has already completed");
+            if (Current > 0) // throw new InvalidOperationException("CountDown has already completed");
             {
-                _currentValue -= amount;
+                Current -= amount;
 
-                if (_currentValue <= 0)
+                if (Current <= 0)
                 {
-                    _currentValue = 0;
+                    Current = 0;
+
                     if (Completed != null)
                     {
-                        Completed.Invoke(this, new CountDownEventArgs(_duration));
+                        Completed.Invoke(this, new CountDownEventArgs(Duration));
                     }
                 }
             }

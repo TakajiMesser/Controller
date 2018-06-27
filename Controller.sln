@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTSController", "TTSController\TTSController.csproj", "{B84AAB98-2534-472A-A234-96D45B168811}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Controller", "TTSController\Controller.csproj", "{B84AAB98-2534-472A-A234-96D45B168811}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTSControllerTest", "TTSControllerTest\TTSControllerTest.csproj", "{ACB70999-42D9-4CA4-A7E4-9B1983904F90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControllerTest", "TTSControllerTest\ControllerTest.csproj", "{ACB70999-42D9-4CA4-A7E4-9B1983904F90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {74534771-F019-4BA3-9A9B-12D0A511B5BA}
 	EndGlobalSection
 EndGlobal
